@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
+from app.models.ticket import TicketStatus
 
 
 class TicketCreate(BaseModel):
@@ -17,3 +18,6 @@ class TicketRead(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class TicketStatusUpdate(BaseModel):
+    status: TicketStatus

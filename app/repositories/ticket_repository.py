@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ticket import Ticket
-from app.schemas.ticket import TicketCreate
+from app.schemas.ticket import TicketCreate, TicketStatus
 
 
 class TicketRepository:
@@ -26,3 +26,21 @@ class TicketRepository:
             select(Ticket).order_by(Ticket.id)
         )
         return list(result.scalars().all())
+    
+    async def update_status(
+        self,
+        ticket: Ticket,
+        status: TicketStatus,
+    ) -> Ticket:
+        ticket.status = status
+
+        await self.session.commit()
+        await self.session.refresh(ticket)
+
+        return ticket
+    
+    async def get_by_id(self, ticket_id: int) -> Ticket | None:
+        result = await self.session.execute(
+            select(Ticket).where(Ticket.id == ticket_id)
+        )
+        return result.scalar_one_or_none()
