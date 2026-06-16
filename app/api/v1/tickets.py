@@ -1,6 +1,6 @@
 from http.client import HTTPException
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import get_db_session
@@ -54,3 +54,30 @@ async def update_ticket_status(
         )
 
     return ticket
+
+@router.get("/{ticket_id}", response_model=TicketRead)
+async def get_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> TicketRead:
+    ticket = await service.get_ticket_by_id(ticket_id)
+
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    return ticket
+
+@router.delete("/{ticket_id}", status_code=204)
+async def delete_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> Response:
+    deleted = await service.delete_ticket(ticket_id)
+
+    if not deleted:
+        raise HTTPException(
+            status_code=404,
+            detail="Ticket not found",
+        )
+
+    return Response(status_code=204)

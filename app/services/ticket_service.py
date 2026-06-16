@@ -25,3 +25,12 @@ class TicketService:
 
         return await self.repository.update_status(ticket, status)
     
+    async def delete_ticket(self, ticket_id: int) -> bool:
+        ticket = await self.repository.get_by_id(ticket_id)
+
+        if ticket is None:
+            return False
+
+        await self.repository.delete(ticket)
+        return True
+    

@@ -44,3 +44,7 @@ class TicketRepository:
             select(Ticket).where(Ticket.id == ticket_id)
         )
         return result.scalar_one_or_none()
+    
+    async def delete(self, ticket: Ticket) -> None:
+        await self.session.delete(ticket)
+        await self.session.commit()
