@@ -1,7 +1,9 @@
 from app.models.ticket import Ticket
 from app.repositories.ticket_repository import TicketRepository
+from app.schemas.ai import TicketAnalysisRequest
 from app.schemas.ticket import TicketCreate, TicketStatus
 
+from app.services.llm_service import LLMService
 
 class TicketService:
     def __init__(self, repository: TicketRepository) -> None:
@@ -33,4 +35,29 @@ class TicketService:
 
         await self.repository.delete(ticket)
         return True
+    
+    async def analyze_ticket(
+        self,
+        ticket_id: int,
+        llm_service: LLMService,
+    ) -> Ticket | None:
+        ticket = await self.repository.get_by_id(ticket_id)
+
+        if ticket is None:
+            return None
+        
+        if ticket.ai_summary is not None:
+            return ticket
+
+        analysis = await llm_service.analyze_ticket(
+            TicketAnalysisRequest(
+                title=ticket.title,
+                description=ticket.description,
+            )
+        )
+
+        return await self.repository.save_analysis(
+            ticket=ticket,
+            analysis=analysis,
+        )
     

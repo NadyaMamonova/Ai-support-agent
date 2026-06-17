@@ -16,6 +16,10 @@ class TicketRead(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    ai_category: str | None = None
+    ai_priority: str | None = None
+    ai_summary: str | None = None
+    analyzed_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

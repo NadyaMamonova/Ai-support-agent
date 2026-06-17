@@ -1,4 +1,6 @@
 from sqlalchemy import select
+from datetime import datetime, timezone
+from app.schemas.ai import TicketAnalysisResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ticket import Ticket
@@ -48,3 +50,19 @@ class TicketRepository:
     async def delete(self, ticket: Ticket) -> None:
         await self.session.delete(ticket)
         await self.session.commit()
+
+
+    async def save_analysis(
+        self,
+        ticket: Ticket,
+        analysis: TicketAnalysisResponse,
+    ) -> Ticket:
+        ticket.ai_category = analysis.category
+        ticket.ai_priority = analysis.priority
+        ticket.ai_summary = analysis.summary
+        ticket.analyzed_at = datetime.now(timezone.utc)
+
+        await self.session.commit()
+        await self.session.refresh(ticket)
+
+        return ticket

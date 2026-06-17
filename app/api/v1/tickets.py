@@ -1,14 +1,14 @@
-from http.client import HTTPException
-
-from fastapi import APIRouter, Depends, status, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import get_db_session
 from app.repositories.ticket_repository import TicketRepository
 from app.schemas.ticket import TicketCreate, TicketRead, TicketStatusUpdate
+from app.services.llm_service import LLMService
 from app.services.ticket_service import TicketService
 
 router = APIRouter()
+llm_service = LLMService()
 
 
 def get_ticket_service(
@@ -36,6 +36,23 @@ async def list_tickets(
 ) -> list[TicketRead]:
     return await service.list_tickets()
 
+
+@router.post("/{ticket_id}/analyze", response_model=TicketRead)
+async def analyze_existing_ticket(
+    ticket_id: int,
+    service: TicketService = Depends(get_ticket_service),
+) -> TicketRead:
+    ticket = await service.analyze_ticket(
+        ticket_id=ticket_id,
+        llm_service=llm_service,
+    )
+
+    if ticket is None:
+        raise HTTPException(status_code=404, detail="Ticket not found")
+
+    return ticket
+
+
 @router.patch("/{ticket_id}/status", response_model=TicketRead)
 async def update_ticket_status(
     ticket_id: int,
@@ -48,12 +65,10 @@ async def update_ticket_status(
     )
 
     if ticket is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Ticket not found",
-        )
+        raise HTTPException(status_code=404, detail="Ticket not found")
 
     return ticket
+
 
 @router.get("/{ticket_id}", response_model=TicketRead)
 async def get_ticket(
@@ -67,7 +82,8 @@ async def get_ticket(
 
     return ticket
 
-@router.delete("/{ticket_id}", status_code=204)
+
+@router.delete("/{ticket_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_ticket(
     ticket_id: int,
     service: TicketService = Depends(get_ticket_service),
@@ -75,9 +91,6 @@ async def delete_ticket(
     deleted = await service.delete_ticket(ticket_id)
 
     if not deleted:
-        raise HTTPException(
-            status_code=404,
-            detail="Ticket not found",
-        )
+        raise HTTPException(status_code=404, detail="Ticket not found")
 
-    return Response(status_code=204)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

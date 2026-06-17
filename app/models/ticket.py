@@ -35,3 +35,22 @@ class Ticket(Base):
         onupdate=func.now(),
         nullable=False,
     )
+    ai_category: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    ai_priority: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
+    ai_summary: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
+    analyzed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
