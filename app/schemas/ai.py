@@ -1,4 +1,23 @@
+from enum import StrEnum
+
 from pydantic import BaseModel, Field
+
+
+class TicketCategory(StrEnum):
+    BILLING = "billing"
+    DATABASE = "database"
+    AUTH = "auth"
+    INFRASTRUCTURE = "infrastructure"
+    BUG = "bug"
+    OTHER = "other"
+    INVALID = "invalid"
+
+
+class TicketPriority(StrEnum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
 
 
 class TicketAnalysisRequest(BaseModel):
@@ -7,6 +26,6 @@ class TicketAnalysisRequest(BaseModel):
 
 
 class TicketAnalysisResponse(BaseModel):
-    category: str
-    priority: str
+    category: TicketCategory
+    priority: TicketPriority
     summary: str

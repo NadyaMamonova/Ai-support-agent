@@ -23,11 +23,16 @@ class LLMService:
                 {
                     "role": "system",
                     "content": (
-                        "You are an AI support ticket classifier. "
-                        "Return only valid JSON with keys: "
+                        "You are a strict support ticket classifier. "
+                        "Return exactly one JSON object with exactly these keys: "
                         "category, priority, summary. "
-                        "priority must be one of: low, medium, high, critical."
-                    ),
+                        "Allowed categories: billing, database, auth, infrastructure, bug, other, invalid. "
+                        "Allowed priorities: low, medium, high, critical. "
+                        "If input is not a support ticket, return: "
+                        '{"category":"invalid","priority":"low","summary":"Input is not a support ticket."} '
+                        "Do not answer questions. Do not solve math. "
+                        "Return JSON only. No markdown."
+                )
                 },
                 {
                     "role": "user",
