@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ai_support_agent
       POSTGRES_PASSWORD: ai_support_agent_password
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

@@ -29,3 +29,4 @@ class TicketAnalysisResponse(BaseModel):
     category: TicketCategory
     priority: TicketPriority
     summary: str
+    suggested_resolution: list[str]

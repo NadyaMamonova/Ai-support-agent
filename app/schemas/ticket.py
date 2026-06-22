@@ -20,6 +20,7 @@ class TicketRead(BaseModel):
     ai_priority: str | None = None
     ai_summary: str | None = None
     analyzed_at: datetime | None = None
+    ai_suggested_resolution: list[str] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

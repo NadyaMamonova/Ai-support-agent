@@ -3,6 +3,7 @@ from enum import StrEnum
 
 from sqlalchemy import DateTime, Enum, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.db.base import Base
 
@@ -54,3 +55,9 @@ class Ticket(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    ai_suggested_resolution: Mapped[list[str] | None] = mapped_column(
+        JSONB,
+        nullable=True,
+    )
+    

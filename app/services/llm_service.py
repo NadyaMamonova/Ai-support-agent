@@ -25,11 +25,11 @@ class LLMService:
                     "content": (
                         "You are a strict support ticket classifier. "
                         "Return exactly one JSON object with exactly these keys: "
-                        "category, priority, summary. "
+                        "category, priority, summary, suggested_resolution. "
                         "Allowed categories: billing, database, auth, infrastructure, bug, other, invalid. "
                         "Allowed priorities: low, medium, high, critical. "
                         "If input is not a support ticket, return: "
-                        '{"category":"invalid","priority":"low","summary":"Input is not a support ticket."} '
+                        '{"category":"invalid","priority":"low","summary":"Input is not a support ticket.","suggested_resolution":[]}'
                         "Do not answer questions. Do not solve math. "
                         "Return JSON only. No markdown."
                 )

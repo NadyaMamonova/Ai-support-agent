@@ -61,6 +61,7 @@ class TicketRepository:
         ticket.ai_priority = analysis.priority
         ticket.ai_summary = analysis.summary
         ticket.analyzed_at = datetime.now(timezone.utc)
+        ticket.ai_suggested_resolution = analysis.suggested_resolution
 
         await self.session.commit()
         await self.session.refresh(ticket)
