@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.dependencies import get_db_session
 from app.repositories.ticket_repository import TicketRepository
+from app.repositories.ai_audit_log_repository import AIAuditLogRepository
 from app.schemas.ticket import TicketCreate, TicketRead, TicketStatusUpdate
 from app.services.llm_service import LLMService
 from app.services.ticket_service import TicketService
@@ -15,7 +16,8 @@ def get_ticket_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> TicketService:
     repository = TicketRepository(session)
-    return TicketService(repository)
+    audit_log_repository = AIAuditLogRepository(session)
+    return TicketService(repository, audit_log_repository)
 
 
 @router.post(

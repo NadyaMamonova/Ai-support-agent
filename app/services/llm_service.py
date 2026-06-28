@@ -1,9 +1,7 @@
-import json
-
 from openai import AsyncOpenAI
 
 from app.core.config import settings
-from app.schemas.ai import TicketAnalysisRequest, TicketAnalysisResponse
+from app.schemas.ai import TicketAnalysisRequest, TicketAnalysisResponse, TicketAnalysisResult
 
 
 class LLMService:
@@ -16,7 +14,11 @@ class LLMService:
     async def analyze_ticket(
         self,
         data: TicketAnalysisRequest,
-    ) -> TicketAnalysisResponse:
+    ) -> TicketAnalysisResult:
+        prompt = (
+            f"Title: {data.title}\n"
+            f"Description: {data.description}"
+        )
         response = await self.client.chat.completions.create(
             model=settings.llm_model,
             messages=[
@@ -29,17 +31,14 @@ class LLMService:
                         "Allowed categories: billing, database, auth, infrastructure, bug, other, invalid. "
                         "Allowed priorities: low, medium, high, critical. "
                         "If input is not a support ticket, return: "
-                        '{"category":"invalid","priority":"low","summary":"Input is not a support ticket.","suggested_resolution":[]}'
+                        '{"category":"invalid","priority":"low","summary":"Input is not a support ticket.","suggested_resolution":[]} '
                         "Do not answer questions. Do not solve math. "
                         "Return JSON only. No markdown."
                 )
                 },
                 {
                     "role": "user",
-                    "content": (
-                        f"Title: {data.title}\n"
-                        f"Description: {data.description}"
-                    ),
+                    "content": prompt,
                 },
             ],
             temperature=0,
@@ -50,4 +49,11 @@ class LLMService:
         if content is None:
             raise ValueError("LLM returned empty response")
 
-        return TicketAnalysisResponse.model_validate_json(content)
+        analysis = TicketAnalysisResponse.model_validate_json(content)
+
+        return TicketAnalysisResult(
+            analysis=analysis,
+            prompt=prompt,
+            raw_response=content,
+            model=settings.llm_model,
+        )

@@ -30,3 +30,10 @@ class TicketAnalysisResponse(BaseModel):
     priority: TicketPriority
     summary: str
     suggested_resolution: list[str]
+
+
+class TicketAnalysisResult(BaseModel):
+    analysis: TicketAnalysisResponse
+    prompt: str
+    raw_response: str
+    model: str
