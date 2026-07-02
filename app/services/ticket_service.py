@@ -20,6 +20,9 @@ class TicketService:
     async def list_tickets(self) -> list[Ticket]:
         return await self.repository.list_all()
     
+    async def get_ticket_by_id(self, ticket_id: int) -> Ticket | None:
+        return await self.repository.get_by_id(ticket_id)
+    
     async def update_ticket_status(
         self,
         ticket_id: int,

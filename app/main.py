@@ -4,6 +4,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.tickets import router as tickets_router
 
 from app.api.v1.ai import router as ai_router
+from app.api.v1.chat import router as chat_router
 
 app = FastAPI(
     title="AI Ops Desk API",
@@ -14,3 +15,4 @@ app.include_router(health_router, prefix="/api/v1", tags=["health"])
 app.include_router(tickets_router, prefix="/api/v1/tickets", tags=["tickets"])
 
 app.include_router(ai_router, prefix="/api/v1/ai", tags=["ai"])
+app.include_router(chat_router, prefix="/api/v1", tags=["chat"])

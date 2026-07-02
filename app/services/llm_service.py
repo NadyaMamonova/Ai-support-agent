@@ -57,3 +57,21 @@ class LLMService:
             raw_response=content,
             model=settings.llm_model,
         )
+    
+    
+    async def complete_json(self, system_prompt: str, user_prompt: str) -> str:
+        response = await self.client.chat.completions.create(
+            model=settings.llm_model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0,
+        )
+
+        content = response.choices[0].message.content
+
+        if content is None:
+            raise ValueError("LLM returned empty response")
+
+        return content
