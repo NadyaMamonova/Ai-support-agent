@@ -8,6 +8,7 @@ from app.schemas.chat import ChatRequest, ChatResponse
 from app.services.agent_service import AgentService
 from app.services.llm_service import LLMService
 from app.services.ticket_service import TicketService
+from app.repositories.agent_tool_call_repository import AgentToolCallRepository
 
 router = APIRouter()
 llm_service = LLMService()
@@ -19,6 +20,8 @@ def get_agent_service(
     ticket_repository = TicketRepository(session)
     audit_log_repository = AIAuditLogRepository(session)
 
+    tool_call_repository = AgentToolCallRepository(session)
+
     ticket_service = TicketService(
         ticket_repository,
         audit_log_repository,
@@ -27,6 +30,7 @@ def get_agent_service(
     return AgentService(
         ticket_service=ticket_service,
         llm_service=llm_service,
+        tool_call_repository=tool_call_repository,
     )
 
 
