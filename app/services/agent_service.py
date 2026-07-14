@@ -1,5 +1,5 @@
 from app.schemas.chat import ChatRequest, ChatResponse, ToolCall
-from app.schemas.ticket import TicketCreate
+from app.schemas.ticket import TicketCreate, TicketStatus
 from app.services.llm_service import LLMService
 from app.services.ticket_service import TicketService
 from app.repositories.agent_tool_call_repository import AgentToolCallRepository
@@ -69,16 +69,39 @@ class AgentService:
             )
 
             return ChatResponse(answer=result)
+        
+        if tool_call.tool == "close_ticket":
+            ticket_id = int(tool_call.arguments["ticket_id"])
+
+            ticket = await self.ticket_service.update_ticket_status(
+                ticket_id=ticket_id,
+                status=TicketStatus.CLOSED,
+            )
+
+            if ticket is None:
+                result = "Тикет не найден."
+            else:
+                result = f"Тикет #{ticket.id} закрыт."
+
+            await self.tool_call_repository.create(
+                tool_name=tool_call.tool,
+                arguments=tool_call.arguments,
+                result=result,
+                ticket_id=ticket_id,
+            )
+
+            return ChatResponse(answer=result)
 
     async def _choose_tool(self, message: str) -> ToolCall:
         user_prompt = (
             "Choose exactly one tool for the user request. "
             "Return only JSON. No markdown. "
-            "Available tools: list_tickets, get_ticket, create_ticket. "
+            "Available tools: list_tickets, get_ticket, create_ticket,close_ticket."
             "Tool schemas: "
             '{"tool":"list_tickets","arguments":{}} '
             '{"tool":"get_ticket","arguments":{"ticket_id":1}} '
             '{"tool":"create_ticket","arguments":{"title":"Short title","description":"Full description"}} '
+            '{"tool":"close_ticket","arguments":{"ticket_id":1}} '
             f"User message: {message}"
         )
 
