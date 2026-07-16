@@ -2,6 +2,9 @@ from openai import AsyncOpenAI
 
 from app.core.config import settings
 from app.schemas.ai import TicketAnalysisRequest, TicketAnalysisResponse, TicketAnalysisResult
+import json
+
+from app.schemas.chat import NativeToolCall
 
 
 class LLMService:
@@ -75,3 +78,116 @@ class LLMService:
             raise ValueError("LLM returned empty response")
 
         return content
+    
+
+    async def choose_tool(
+        self,
+        message: str,
+    ) -> NativeToolCall | None:
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_tickets",
+                    "description": "Return the list of support tickets.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {},
+                        "required": [],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_ticket",
+                    "description": "Get one support ticket by its integer ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "ticket_id": {
+                                "type": "integer",
+                                "description": "The ticket ID.",
+                            }
+                        },
+                        "required": ["ticket_id"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "create_ticket",
+                    "description": "Create a new support ticket.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "title": {
+                                "type": "string",
+                                "description": "A short ticket title.",
+                            },
+                            "description": {
+                                "type": "string",
+                                "description": "A detailed description of the problem.",
+                            },
+                        },
+                        "required": ["title", "description"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "close_ticket",
+                    "description": "Close a support ticket by its integer ID.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "ticket_id": {
+                                "type": "integer",
+                                "description": "The ticket ID.",
+                            }
+                        },
+                        "required": ["ticket_id"],
+                    },
+                },
+            },
+        ]
+
+        response = await self.client.chat.completions.create(
+            model=settings.llm_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an AI support agent. "
+                        "Choose the appropriate tool for the user's request. "
+                        "Do not invent ticket data."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": message,
+                },
+            ],
+            tools=tools,
+            tool_choice="auto",
+            temperature=0,
+        )
+
+        assistant_message = response.choices[0].message
+
+        if not assistant_message.tool_calls:
+            return None
+
+        tool_call = assistant_message.tool_calls[0]
+
+        arguments = tool_call.function.arguments
+
+        if isinstance(arguments, str):
+            arguments = json.loads(arguments)
+
+        return NativeToolCall(
+            name=tool_call.function.name,
+            arguments=arguments,
+        )

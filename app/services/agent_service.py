@@ -91,23 +91,15 @@ class AgentService:
             )
 
             return ChatResponse(answer=result)
-
+        
     async def _choose_tool(self, message: str) -> ToolCall:
-        user_prompt = (
-            "Choose exactly one tool for the user request. "
-            "Return only JSON. No markdown. "
-            "Available tools: list_tickets, get_ticket, create_ticket,close_ticket."
-            "Tool schemas: "
-            '{"tool":"list_tickets","arguments":{}} '
-            '{"tool":"get_ticket","arguments":{"ticket_id":1}} '
-            '{"tool":"create_ticket","arguments":{"title":"Short title","description":"Full description"}} '
-            '{"tool":"close_ticket","arguments":{"ticket_id":1}} '
-            f"User message: {message}"
-        )
+        native_tool_call = await self.llm_service.choose_tool(message)
 
-        content = await self.llm_service.complete_json(
-            system_prompt="You are an AI agent router. Return only valid JSON.",
-            user_prompt=user_prompt,
-        )
+        if native_tool_call is None:
+            raise ValueError("LLM did not choose a tool")
 
-        return ToolCall.model_validate_json(content)
+        return ToolCall(
+            tool=native_tool_call.name,
+            arguments=native_tool_call.arguments,
+        )
+    

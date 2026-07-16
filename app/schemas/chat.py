@@ -14,3 +14,8 @@ class ToolCall(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
+
+
+class NativeToolCall(BaseModel):
+    name: str
+    arguments: dict[str, Any]
